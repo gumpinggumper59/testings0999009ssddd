@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lost Sword Archives</title>
+  <link rel="stylesheet" href="style.css?v=4">
+  <script src="script.js?v=11" defer></script>
+  <link rel="icon" type="image/x-icon" href="logo-alt.ico">
+  <!-- Preload most used images -->
+  <link rel="preload" href="side-quest-balan/first-part/webp-versions/lost-sword-comic-page-1.webp" as="image" type="image/webp">
+  <link rel="preload" href="side-quest-balan/first-part/png-versions/lost-sword-comic-page-1.png" as="image" type="image/png">
+</head>
+<body>
+  <header class="topbar" role="navigation" aria-label="Main navigation">
+    <div class="brand">Lost Sword Archives</div>
+    <nav class="tabs" role="tablist" aria-label="Site sections">
+      <button class="tab" id="tab-home" aria-selected="true" tabindex="0" data-target="home">Home</button>
+      <button class="tab" id="tab-side-quests" aria-selected="false" tabindex="0" data-target="side-quests">Side Quests</button>
+    </nav>
+    <div class="socials" id="socials-desktop" aria-label="Social links"></div>
+  </header>
+  <nav class="mobile-socials" id="socials-mobile" aria-label="Social links"></nav>
+
+  <main>
+    <!-- HOME SECTION -->
+    <section id="home" data-section>
+      <div class="home-layout">
+        <aside class="shop shop-left">
+          <h3>Balan Box</h3>
+          <div id="shop-left-container" class="shop-grid"></div>
+        </aside>
+        <section class="balan-container" aria-label="Clicker">
+          <picture>
+            <source srcset="sprites/balan-balan-clicker/webp-versions/balan-sprite.webp" type="image/webp">
+            <img id="balan" class="balan-image" src="sprites/balan-balan-clicker/png-versions/balan-sprite.png" alt="balan sprite" decoding="async">
+          </picture>
+          <div class="balan-label">Happy Coins: <span id="happy-coins">0</span></div>
+          <div class="balan-label">Clicks: <span id="click-count">0</span></div>
+          <button id="reset-clicks">Reset Clicks</button>
+          <button id="mute-btn">shut up!</button>
+        </section>
+        <aside class="shop shop-right">
+          <h3>Balan Box</h3>
+          <div id="shop-right-container" class="shop-grid"></div>
+        </aside>
+      </div>
+    </section>
+    <!-- SIDE QUESTS SECTION -->
+    <section id="side-quests" data-section hidden>
+      <div class="chapters-list">
+        <div class="comic-title">
+          <a href="#" id="open-comic" aria-label="Open comic: Side Quest - Balan! Part 1">Side Quest - Balan! Part 1</a>
+          <button class="open-btn" id="open-comic-btn">Read</button>
+        </div>
+      </div>
+    </section>
+    <!-- COMIC READER -->
+    <section id="reader" data-section hidden>
+      <div class="reader">
+        <div class="reader-toolbar">
+          <button class="btn" id="prev-page">Prev</button>
+          <div class="meta" id="page-indicator">Page 1 / 5</div>
+          <button class="btn" id="next-page">Next</button>
+        </div>
+        <div class="reader-stage" id="reader-stage"></div>
+      </div>
+    </section>
+  </main>
+  <!-- MODAL IMAGE VIEWER -->
+  <div id="image-modal" class="modal" hidden>
+    <div class="modal-content">
+      <img id="modal-img" src="" alt="Exclusive Image">
+    </div>
+  </div>
+</body>
+</html>
