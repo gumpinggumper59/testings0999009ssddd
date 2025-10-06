@@ -109,15 +109,15 @@ preloadImages(balanSprites);
 // ---- Preload all clicker audio ----
 const clickerVoices = {
   random: [
-    'voice-acting/balan-balan/clkr-ah-one.mp3','voice-acting/balan-balan/clkr-ah-two.mp3','voice-acting/balan-balan/clkr-ah-three.mp3',
-    'voice-acting/balan-balan/clkr-eh-one.mp3','voice-acting/balan-balan/clkr-eh-two.mp3','voice-acting/balan-balan/clkr-eh-three.mp3',
-    'voice-acting/balan-balan/clkr-oh-one.mp3','voice-acting/balan-balan/clkr-oh-two.mp3','voice-acting/balan-balan/clkr-oh-three.mp3'
+    'voice-acting/balan-balan/brh-numbers/clkr-ah-one.mp3','voice-acting/balan-balan/brh-numbers/clkr-ah-two.mp3','voice-acting/balan-balan/brh-numbers/clkr-ah-three.mp3',
+    'voice-acting/balan-balan/brh-numbers/clkr-eh-one.mp3','voice-acting/balan-balan/brh-numbers/clkr-eh-two.mp3','voice-acting/balan-balan/brh-numbers/clkr-eh-three.mp3',
+    'voice-acting/balan-balan/brh-numbers/clkr-oh-one.mp3','voice-acting/balan-balan/brh-numbers/clkr-oh-two.mp3','voice-acting/balan-balan/brh-numbers/clkr-oh-three.mp3'
   ],
   fifty: [
-    'voice-acting/balan-balan/clkr-mmn-one.mp3','voice-acting/balan-balan/clkr-mmn-two.mp3','voice-acting/balan-balan/clkr-mmn-three.mp3'
+    'voice-acting/balan-balan/brh-numbers/clkr-mmn-one.mp3','voice-acting/balan-balan/brh-numbers/clkr-mmn-two.mp3','voice-acting/balan-balan/brh-numbers/clkr-mmn-three.mp3'
   ],
   milestone: [
-    'voice-acting/balan-balan/clkr-balan-one.mp3','voice-acting/balan-balan/clkr-balan-two.mp3','voice-acting/balan-balan/clkr-balan-three.mp3'
+    'voice-acting/balan-balan/brh-numbers/clkr-balan-one.mp3','voice-acting/balan-balan/brh-numbers/clkr-balan-two.mp3','voice-acting/balan-balan/brh-numbers/clkr-balan-three.mp3'
   ]
 };
 const audioPool = {};
@@ -210,6 +210,8 @@ function playVoiceFromPool(audioObj) {
 
 // ---- Robust image hover/click logic ----
 let clickerState = "default"; // "default", "click", "milestone"
+let isMouseOver = false;
+
 function showClickSprite() {
   updateBalanSpriteForState("click");
   clickerState = "click";
@@ -222,19 +224,25 @@ function showDefaultSprite() {
   updateBalanSpriteForState("default");
   clickerState = "default";
 }
-// On mouseenter: show click sprite if not milestone
+
+// On mouseenter: always show click sprite until mouseleave
 balanImg.addEventListener('mouseenter', () => {
-  if (clickerState !== "milestone") showClickSprite();
+  isMouseOver = true;
+  showClickSprite();
 });
-// On mousedown: always show click sprite
-balanImg.addEventListener('mousedown', showClickSprite);
-// On mouseup: stay on click sprite until click event
-balanImg.addEventListener('mouseup', showClickSprite);
-// On mouseleave: revert to milestone/default
 balanImg.addEventListener('mouseleave', () => {
+  isMouseOver = false;
   showDefaultSprite();
 });
-// On click: increment, play sound, handle milestone, sprite
+balanImg.addEventListener('mousedown', () => {
+  // On click, maintain click sprite
+  showClickSprite();
+});
+balanImg.addEventListener('mouseup', () => {
+  // Do nothing; only mouseleave reverts sprite
+});
+
+// On click: increment, play sound, handle milestone
 balanImg.onclick = () => {
   clicks++;
   localStorage.setItem('balanClicks', clicks);
@@ -252,11 +260,9 @@ balanImg.onclick = () => {
     showClickSprite();
   }
   playVoiceFromPool(voiceObj);
-  // After 120ms, revert to milestone/default sprite
-  setTimeout(() => {
-    showDefaultSprite();
-  }, 120);
+  // Do NOT revert sprite here; only mouseleave does that now
 };
+
 // Reset button logic
 resetBtn.onclick = () => {
   happyCoins += clicks;
