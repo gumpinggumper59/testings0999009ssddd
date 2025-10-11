@@ -70,6 +70,9 @@ document.getElementById('next-page').onclick = () => {
 // - Easy to add/replace images: edit HIGHLIGHTS array.
 // - Each entry optionally has `href` (make image a link).
 // - Images can be webp/png pairs for progressive enhancement.
+// - Behavior changes:
+//   * On mobile we now match desktop: show one slide at a time (no stacked list).
+//   * First click on a highlight expands the highlights-panel (preview). Second click (if the user hasn't clicked outside) follows the link.
 // =========================
 const HIGHLIGHTS = [
   // Example items. To add more, append similar objects.
@@ -84,6 +87,7 @@ const HIGHLIGHT_INTERVAL_MS = 5000;
 let highlightIndex = 0;
 let highlightTimer = null;
 const highlightsStage = document.getElementById('highlights-stage');
+const highlightsPanel = document.getElementById('highlights-panel');
 
 function preloadHighlightImages(items) {
   items.forEach(it => {
@@ -141,6 +145,87 @@ highlightsStage.addEventListener && highlightsStage.addEventListener('mouseleave
 preloadHighlightImages(HIGHLIGHTS);
 renderHighlights(HIGHLIGHTS);
 startHighlightsCycle();
+
+// =========================
+// Highlights: "expand on first click, follow href on second click" behavior
+// =========================
+let highlightsExpanded = false;
+let expandedIdx = null;
+
+// Click handling on highlights.
+// If the clicked element is a highlight link, the first click expands the panel (preventing navigation).
+// If the same highlight is clicked again while expanded, allow navigation to proceed to the href (native behavior).
+highlightsStage.addEventListener('click', (e) => {
+  const slide = e.target.closest('.highlight-slide');
+  const link = e.target.closest('.highlight-link');
+  if (!slide) return; // not a click on a slide area
+  const idx = Number(slide.dataset.idx);
+
+  if (link) {
+    if (!highlightsExpanded || expandedIdx !== idx) {
+      // First click (or clicked another slide): expand preview and prevent navigation
+      e.preventDefault();
+      highlightsExpanded = true;
+      expandedIdx = idx;
+      highlightsPanel.classList.add('expanded');
+      highlightsPanel.setAttribute('aria-expanded', 'true');
+      // Ensure clicked slide is active/visible
+      const current = highlightsStage.querySelector('.highlight-slide.active');
+      if (current) current.classList.remove('active');
+      slide.classList.add('active');
+      highlightIndex = idx;
+      // Pause cycling while expanded
+      if (highlightTimer) {
+        clearInterval(highlightTimer);
+        highlightTimer = null;
+      }
+      // Focus the link so keyboard users know state changed
+      link.focus();
+    } else {
+      // Second click on the same expanded slide -> allow native navigation (link will open)
+      // After allowing navigation, we'll still keep expanded state (opening in new tab won't change view).
+      // No special handling needed here.
+    }
+  } else {
+    // If the slide isn't a link (no href), we can still expand it on first click
+    if (!highlightsExpanded || expandedIdx !== idx) {
+      e.preventDefault && e.preventDefault();
+      highlightsExpanded = true;
+      expandedIdx = idx;
+      highlightsPanel.classList.add('expanded');
+      highlightsPanel.setAttribute('aria-expanded', 'true');
+      const current = highlightsStage.querySelector('.highlight-slide.active');
+      if (current) current.classList.remove('active');
+      slide.classList.add('active');
+      highlightIndex = idx;
+      if (highlightTimer) {
+        clearInterval(highlightTimer);
+        highlightTimer = null;
+      }
+    }
+  }
+});
+
+// Collapse when clicking outside the highlights panel
+document.addEventListener('click', (e) => {
+  if (!highlightsExpanded) return;
+  const isInside = e.target.closest && e.target.closest('#highlights-panel');
+  if (!isInside) {
+    // Collapse panel
+    highlightsExpanded = false;
+    expandedIdx = null;
+    highlightsPanel.classList.remove('expanded');
+    highlightsPanel.setAttribute('aria-expanded', 'false');
+    // restore active to current highlightIndex (or 0 if none)
+    const slides = highlightsStage.querySelectorAll('.highlight-slide');
+    slides.forEach(s => s.classList.remove('active'));
+    const restoreIdx = Math.min(Math.max(0, highlightIndex || 0), (slides.length - 1));
+    const toShow = highlightsStage.querySelector(`.highlight-slide[data-idx="${restoreIdx}"]`);
+    if (toShow) toShow.classList.add('active');
+    // resume cycling
+    startHighlightsCycle();
+  }
+});
 
 // =========================
 // Clicker / Happy Coins
