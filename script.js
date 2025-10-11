@@ -78,9 +78,9 @@ const HIGHLIGHTS = [
   // Example items. To add more, append similar objects.
   // { href: "https://example.com/item-1", webp: "highlights/img-1.webp", png: "highlights/img-1.png", alt: "Highlight one" },
   // { href: "", webp: "highlights/img-2.webp", png: "highlights/img-2.png", alt: "Highlight two" },
-  { href: "balanhehe", webp: "sprites/highlights-rotation/webp-versions/placeholder-test-one.webp", png: "sprites/highlights-rotation/png-versions/placeholder-test-one.png", alt: "Example highlight 1" },
-  { href: "balan", webp: "sprites/highlights-rotation/webp-versions/placeholder-test-two.webp", png: "sprites/highlights-rotation/png-versions/placeholder-test-one.png", alt: "Example highlight 2" },
-  { href: "yo", webp: "sprites/highlights-rotation/webp-versions/placeholder-test-three.webp", png: "sprites/highlights-rotation/png-versions/placeholder-test-one.png", alt: "Example highlight 3" }
+  { href: "balam", webp: "sprites/highlights-rotation/webp-versions/beth-n-gus.webp", png: "sprites/highlights-rotation/png-versions/beth-n-gus.png", alt: "Beth fails" },
+  { href: "balan", webp: "sprites/highlights-rotation/webp-versions/kazene-cat-maid.webp", png: "sprites/highlights-rotation/png-versions/kazene-cat-maid.png", alt: "Beth fails" },
+  { href: "yo", gif: "sprites/highlights-rotation/gif-versions/protarn-by-cry.gif", png: "vacant", alt: "Beth fails" }
 ];
 
 const HIGHLIGHT_INTERVAL_MS = 5000;
