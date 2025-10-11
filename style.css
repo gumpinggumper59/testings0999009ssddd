@@ -102,12 +102,14 @@ main {
   margin-top: 20px;
 }
 .balan-container {
-  flex: 1;
+  flex: 0 1 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: min(420px, 85vw);
   text-align: center;
+  /* nudge left a little to make room for highlights */
+  transform: translateX(-12px);
 }
 .balan-image {
   width: 100%;
@@ -195,6 +197,64 @@ main {
   border-radius: 6px;
   display: block;
   height: auto;
+}
+/* ===== HIGHLIGHTS PANEL ===== */
+.highlights-panel {
+  width: 320px;
+  max-width: 30%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  text-align: center;
+}
+.highlights-panel h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 8px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: #fff;
+}
+.highlights-stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+.highlight-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  opacity: 0;
+  transition: opacity 600ms ease;
+  pointer-events: none;
+}
+.highlight-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 2;
+}
+.highlight-slide img,
+.highlight-slide picture {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  display: block;
+  object-fit: contain;
+}
+.highlight-link {
+  display: inline-block;
+  width: 100%;
 }
 /* ===== SHOP ===== */
 .shop {
@@ -294,6 +354,27 @@ main {
   }
   .shop-image img {
     max-width: 120px;
+  }
+
+  /* Highlights become full-width, placed under clicker for mobile */
+  .highlights-panel {
+    width: 100%;
+    max-width: 920px;
+  }
+  .highlights-stage {
+    height: auto;
+    min-height: 160px;
+    padding: 12px;
+  }
+  .highlight-slide {
+    position: relative;
+    opacity: 1 !important;
+    pointer-events: auto;
+    transition: none;
+  }
+  .highlight-slide img,
+  .highlight-slide picture {
+    max-height: 56vw;
   }
 }
 @media (max-width: 700px) {
