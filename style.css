@@ -256,6 +256,16 @@ main {
   display: inline-block;
   width: 100%;
 }
+/* Expanded state for clearer preview */
+.highlights-panel.expanded {
+  /* make sure the panel can grow and overlay nicely */
+  position: relative;
+  z-index: 1000;
+}
+.highlights-panel.expanded .highlights-stage {
+  height: min(80vh, 90vw);
+}
+
 /* ===== SHOP ===== */
 .shop {
   width: 220px;
@@ -356,25 +366,34 @@ main {
     max-width: 120px;
   }
 
-  /* Highlights become full-width, placed under clicker for mobile */
+  /* Keep highlights functioning like desktop on mobile:
+     - Only one slide visible at a time (positioned absolutely).
+     - Adjust stage size for mobile but keep overflow:hidden so slides don't stack vertically.
+  */
   .highlights-panel {
     width: 100%;
     max-width: 920px;
   }
   .highlights-stage {
-    height: auto;
+    height: 56vw;
     min-height: 160px;
     padding: 12px;
   }
   .highlight-slide {
-    position: relative;
-    opacity: 1 !important;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 600ms ease;
+  }
+  .highlight-slide.active {
+    opacity: 1;
     pointer-events: auto;
-    transition: none;
   }
   .highlight-slide img,
   .highlight-slide picture {
     max-height: 56vw;
+    max-width: 100%;
   }
 }
 @media (max-width: 700px) {
