@@ -67,48 +67,58 @@ document.getElementById('next-page').onclick = () => {
 
 // =========================
 // Highlights of the Week (carousel)
-// - Easy to add/replace images: edit HIGHLIGHTS array.
-// - Each entry optionally has `href` (make image a link).
-// - Images can be webp/png pairs for progressive enhancement.
-// - Behavior changes:
-//   * On mobile we now match desktop: show one slide at a time (no stacked list).
-//   * First click on a highlight expands the highlights-panel (preview). Second click (if the user hasn't clicked outside) follows the link.
+// - GIF support added.
+// - Shorter interval (about ~1.5s faster).
+// - Robust scheduler using single timeout so pause/resume preserves remaining delay and yields consistent timing.
+// - First click expands the panel; second click follows the href.
 // =========================
 const HIGHLIGHTS = [
-  // Example items. To add more, append similar objects.
-  // { href: "https://example.com/item-1", webp: "highlights/img-1.webp", png: "highlights/img-1.png", alt: "Highlight one" },
-  // { href: "", webp: "highlights/img-2.webp", png: "highlights/img-2.png", alt: "Highlight two" },
-  { href: "balam", webp: "sprites/highlights-rotation/webp-versions/beth-n-gus.webp", png: "sprites/highlights-rotation/png-versions/beth-n-gus.png", alt: "Beth fails" },
-  { href: "balan", webp: "sprites/highlights-rotation/webp-versions/kazene-cat-maid.webp", png: "sprites/highlights-rotation/png-versions/kazene-cat-maid.png", alt: "Beth fails" },
-  { href: "yo", gif: "sprites/highlights-rotation/gif-versions/protarn-by-cry.gif", png: "vacant", alt: "Beth fails" }
+  { href: "https://www.instagram.com/p/DPWtoprD9QQ/?img_index=1", webp: "sprites/highlights-rotation/webp-versions/beth-n-gus.webp", png: "sprites/highlights-rotation/png-versions/beth-n-gus.png", alt: "Beth fails" },
+  { href: "https://www.instagram.com/kazeneeeee", webp: "sprites/highlights-rotation/webp-versions/kazene-cat-maid.webp", png: "sprites/highlights-rotation/png-versions/kazene-cat-maid.png", alt: "Kazene cat maid" },
+  { href: "https://www.instagram.com/p/DPiT9qmAAfx/?img_index=1", gif: "sprites/highlights-rotation/gif-versions/protarn-by-cry.gif", png: "sprites/highlights-rotation/png-versions/protarn-placeholder.png", alt: "Protarn animation" }
 ];
 
-const HIGHLIGHT_INTERVAL_MS = 5000;
+// Interval: shorter than before (previously 5000ms). Picked ~3500ms (1.5s faster).
+const HIGHLIGHT_INTERVAL_MS = 3500;
+
 let highlightIndex = 0;
-let highlightTimer = null;
 const highlightsStage = document.getElementById('highlights-stage');
 const highlightsPanel = document.getElementById('highlights-panel');
+
+// Scheduler state (single timeout approach)
+let highlightTimeoutId = null;
+let scheduledAt = null;
+let scheduledDelay = HIGHLIGHT_INTERVAL_MS;
+let remainingDelay = null;
 
 function preloadHighlightImages(items) {
   items.forEach(it => {
     if (it.webp) { const i = new Image(); i.src = it.webp; }
     if (it.png)  { const i = new Image(); i.src = it.png; }
+    if (it.gif)  { const i = new Image(); i.src = it.gif; } // preload gif too
   });
 }
 
-// Build DOM for highlights - easy to manage and accessible
+// Build DOM for highlights - support webp/png/gif
 function renderHighlights(items) {
   if (!highlightsStage) return;
   highlightsStage.innerHTML = items.map((it, idx) => {
     const linkStart = it.href ? `<a class="highlight-link" href="${it.href}" target="_blank" rel="noopener" aria-label="${it.alt || 'Highlight'}">` : '';
     const linkEnd = it.href ? `</a>` : '';
+
+    // Use <picture> if webp is provided, and fall back to gif (animated) or png.
+    const fallback = it.gif ? it.gif : (it.png || '');
+    const picture = `
+      <picture>
+        ${it.webp ? `<source srcset="${it.webp}" type="image/webp">` : ''}
+        <img src="${fallback}" alt="${it.alt || ''}" loading="lazy" decoding="async">
+      </picture>
+    `;
+
     return `
       <div class="highlight-slide" data-idx="${idx}" role="group" aria-roledescription="slide" aria-label="${it.alt || ('Highlight ' + (idx+1))}">
         ${linkStart}
-          <picture>
-            ${it.webp ? `<source srcset="${it.webp}" type="image/webp">` : ''}
-            <img src="${it.png || ''}" alt="${it.alt || ''}" loading="lazy" decoding="async">
-          </picture>
+          ${picture}
         ${linkEnd}
       </div>
     `;
@@ -118,33 +128,79 @@ function renderHighlights(items) {
   if (first) first.classList.add('active');
 }
 
-function startHighlightsCycle() {
-  if (!HIGHLIGHTS || HIGHLIGHTS.length <= 1) return;
-  clearInterval(highlightTimer);
-  highlightTimer = setInterval(() => {
-    const slides = highlightsStage.querySelectorAll('.highlight-slide');
-    if (!slides || slides.length === 0) return;
-    // hide current
-    const current = highlightsStage.querySelector('.highlight-slide.active');
-    if (current) current.classList.remove('active');
-    highlightIndex = (highlightIndex + 1) % slides.length;
-    const next = highlightsStage.querySelector(`.highlight-slide[data-idx="${highlightIndex}"]`);
-    if (next) next.classList.add('active');
-  }, HIGHLIGHT_INTERVAL_MS);
+// Advance to next slide (used by scheduler)
+function advanceSlide() {
+  const slides = highlightsStage.querySelectorAll('.highlight-slide');
+  if (!slides || slides.length === 0) return;
+  const current = highlightsStage.querySelector('.highlight-slide.active');
+  if (current) current.classList.remove('active');
+  highlightIndex = (highlightIndex + 1) % slides.length;
+  const next = highlightsStage.querySelector(`.highlight-slide[data-idx="${highlightIndex}"]`);
+  if (next) next.classList.add('active');
 }
 
-// Pause on hover for desktop - nicer UX
+// Schedule the next transition using a single timeout.
+// If delay is provided, use it; otherwise use HIGHLIGHT_INTERVAL_MS.
+function scheduleNextTransition(delay) {
+  clearScheduledTransition();
+  const d = typeof delay === 'number' ? delay : HIGHLIGHT_INTERVAL_MS;
+  scheduledDelay = d;
+  scheduledAt = Date.now();
+  highlightTimeoutId = setTimeout(() => {
+    highlightTimeoutId = null;
+    scheduledAt = null;
+    scheduledDelay = HIGHLIGHT_INTERVAL_MS;
+    remainingDelay = null;
+    advanceSlide();
+    // schedule the following transition
+    scheduleNextTransition(HIGHLIGHT_INTERVAL_MS);
+  }, d);
+}
+
+function clearScheduledTransition() {
+  if (highlightTimeoutId) {
+    clearTimeout(highlightTimeoutId);
+    highlightTimeoutId = null;
+  }
+  scheduledAt = null;
+}
+
+// Pause cycle but remember remaining time so resume keeps consistent timing
+function pauseHighlightsCycle() {
+  if (!highlightTimeoutId || !scheduledAt) return;
+  const elapsed = Date.now() - scheduledAt;
+  remainingDelay = Math.max(0, scheduledDelay - elapsed);
+  clearScheduledTransition();
+}
+
+// Resume cycle; if remainingDelay exists, use it so timing stays consistent
+function resumeHighlightsCycle() {
+  // if already scheduled, do nothing
+  if (highlightTimeoutId) return;
+  const delay = (typeof remainingDelay === 'number' && remainingDelay > 0) ? remainingDelay : HIGHLIGHT_INTERVAL_MS;
+  remainingDelay = null;
+  scheduleNextTransition(delay);
+}
+
+// Stop cycle completely (used when we want no scheduled transitions)
+function stopHighlightsCycle() {
+  remainingDelay = null;
+  clearScheduledTransition();
+}
+
+// Pause on hover for desktop - nicer UX (use pause/resume helpers)
 highlightsStage.addEventListener && highlightsStage.addEventListener('mouseenter', () => {
-  if (highlightTimer) clearInterval(highlightTimer);
+  pauseHighlightsCycle();
 });
 highlightsStage.addEventListener && highlightsStage.addEventListener('mouseleave', () => {
-  startHighlightsCycle();
+  resumeHighlightsCycle();
 });
 
 // Initialize highlights
 preloadHighlightImages(HIGHLIGHTS);
 renderHighlights(HIGHLIGHTS);
-startHighlightsCycle();
+// Start the scheduler (first transition after HIGHLIGHT_INTERVAL_MS)
+scheduleNextTransition(HIGHLIGHT_INTERVAL_MS);
 
 // =========================
 // Highlights: "expand on first click, follow href on second click" behavior
@@ -174,16 +230,12 @@ highlightsStage.addEventListener('click', (e) => {
       if (current) current.classList.remove('active');
       slide.classList.add('active');
       highlightIndex = idx;
-      // Pause cycling while expanded
-      if (highlightTimer) {
-        clearInterval(highlightTimer);
-        highlightTimer = null;
-      }
+      // Pause cycling while expanded (preserving remaining delay)
+      pauseHighlightsCycle();
       // Focus the link so keyboard users know state changed
       link.focus();
     } else {
       // Second click on the same expanded slide -> allow native navigation (link will open)
-      // After allowing navigation, we'll still keep expanded state (opening in new tab won't change view).
       // No special handling needed here.
     }
   } else {
@@ -198,10 +250,7 @@ highlightsStage.addEventListener('click', (e) => {
       if (current) current.classList.remove('active');
       slide.classList.add('active');
       highlightIndex = idx;
-      if (highlightTimer) {
-        clearInterval(highlightTimer);
-        highlightTimer = null;
-      }
+      pauseHighlightsCycle();
     }
   }
 });
@@ -222,8 +271,8 @@ document.addEventListener('click', (e) => {
     const restoreIdx = Math.min(Math.max(0, highlightIndex || 0), (slides.length - 1));
     const toShow = highlightsStage.querySelector(`.highlight-slide[data-idx="${restoreIdx}"]`);
     if (toShow) toShow.classList.add('active');
-    // resume cycling
-    startHighlightsCycle();
+    // resume cycling (will honor remainingDelay saved earlier so timing is consistent)
+    resumeHighlightsCycle();
   }
 });
 
