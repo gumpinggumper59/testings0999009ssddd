@@ -66,6 +66,83 @@ document.getElementById('next-page').onclick = () => {
 });
 
 // =========================
+// Highlights of the Week (carousel)
+// - Easy to add/replace images: edit HIGHLIGHTS array.
+// - Each entry optionally has `href` (make image a link).
+// - Images can be webp/png pairs for progressive enhancement.
+// =========================
+const HIGHLIGHTS = [
+  // Example items. To add more, append similar objects.
+  // { href: "https://example.com/item-1", webp: "highlights/img-1.webp", png: "highlights/img-1.png", alt: "Highlight one" },
+  // { href: "", webp: "highlights/img-2.webp", png: "highlights/img-2.png", alt: "Highlight two" },
+  { href: "balanhehe", webp: "sprites/highlights-rotation/webp-versions/placeholder-test-one.webp", png: "sprites/highlights-rotation/png-versions/placeholder-test-one.png", alt: "Example highlight 1" },
+  { href: "balan", webp: "sprites/highlights-rotation/webp-versions/placeholder-test-two.webp", png: "sprites/highlights-rotation/png-versions/placeholder-test-one.png", alt: "Example highlight 2" },
+  { href: "yo", webp: "sprites/highlights-rotation/webp-versions/placeholder-test-three.webp", png: "sprites/highlights-rotation/png-versions/placeholder-test-one.png", alt: "Example highlight 3" }
+];
+
+const HIGHLIGHT_INTERVAL_MS = 5000;
+let highlightIndex = 0;
+let highlightTimer = null;
+const highlightsStage = document.getElementById('highlights-stage');
+
+function preloadHighlightImages(items) {
+  items.forEach(it => {
+    if (it.webp) { const i = new Image(); i.src = it.webp; }
+    if (it.png)  { const i = new Image(); i.src = it.png; }
+  });
+}
+
+// Build DOM for highlights - easy to manage and accessible
+function renderHighlights(items) {
+  if (!highlightsStage) return;
+  highlightsStage.innerHTML = items.map((it, idx) => {
+    const linkStart = it.href ? `<a class="highlight-link" href="${it.href}" target="_blank" rel="noopener" aria-label="${it.alt || 'Highlight'}">` : '';
+    const linkEnd = it.href ? `</a>` : '';
+    return `
+      <div class="highlight-slide" data-idx="${idx}" role="group" aria-roledescription="slide" aria-label="${it.alt || ('Highlight ' + (idx+1))}">
+        ${linkStart}
+          <picture>
+            ${it.webp ? `<source srcset="${it.webp}" type="image/webp">` : ''}
+            <img src="${it.png || ''}" alt="${it.alt || ''}" loading="lazy" decoding="async">
+          </picture>
+        ${linkEnd}
+      </div>
+    `;
+  }).join('');
+  // Activate first slide
+  const first = highlightsStage.querySelector('.highlight-slide[data-idx="0"]');
+  if (first) first.classList.add('active');
+}
+
+function startHighlightsCycle() {
+  if (!HIGHLIGHTS || HIGHLIGHTS.length <= 1) return;
+  clearInterval(highlightTimer);
+  highlightTimer = setInterval(() => {
+    const slides = highlightsStage.querySelectorAll('.highlight-slide');
+    if (!slides || slides.length === 0) return;
+    // hide current
+    const current = highlightsStage.querySelector('.highlight-slide.active');
+    if (current) current.classList.remove('active');
+    highlightIndex = (highlightIndex + 1) % slides.length;
+    const next = highlightsStage.querySelector(`.highlight-slide[data-idx="${highlightIndex}"]`);
+    if (next) next.classList.add('active');
+  }, HIGHLIGHT_INTERVAL_MS);
+}
+
+// Pause on hover for desktop - nicer UX
+highlightsStage.addEventListener && highlightsStage.addEventListener('mouseenter', () => {
+  if (highlightTimer) clearInterval(highlightTimer);
+});
+highlightsStage.addEventListener && highlightsStage.addEventListener('mouseleave', () => {
+  startHighlightsCycle();
+});
+
+// Initialize highlights
+preloadHighlightImages(HIGHLIGHTS);
+renderHighlights(HIGHLIGHTS);
+startHighlightsCycle();
+
+// =========================
 // Clicker / Happy Coins
 // =========================
 
