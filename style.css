@@ -253,7 +253,9 @@ main {
   object-fit: contain;
 }
 .highlight-link {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
 }
 /* Expanded state for clearer preview */
@@ -344,6 +346,14 @@ main {
   margin-top: 24px;
 }
 /* ===== MOBILE ===== */
+
+/* default (desktop) expanded size — reduced compared to previous */
+.highlights-panel.expanded .highlights-stage {
+  height: min(60vh, 520px);
+}
+
+/* Mobile override: keep the larger preview on small viewports (unchanged behavior) */
+
 @media (max-width: 900px) {
   .home-layout {
     flex-direction: column;
@@ -394,6 +404,11 @@ main {
   .highlight-slide picture {
     max-height: 56vw;
     max-width: 100%;
+	}
+
+  /* Keep the expanded mobile preview large (original mobile expansion) */
+  .highlights-panel.expanded .highlights-stage {
+    height: min(80vh, 90vw);
   }
 }
 @media (max-width: 700px) {
