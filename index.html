@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Lost Sword Archives</title>
-  <link rel="stylesheet" href="style.css?v=4">
-  <script src="script.js?v=12" defer></script>
+  <link rel="stylesheet" href="style.css?v=5">
+  <script src="script.js?v=13" defer></script>
   <link rel="icon" type="image/x-icon" href="logo-alt.ico">
   <!-- Preload most used images -->
   <link rel="preload" href="side-quest-balan/first-part/webp-versions/lost-sword-comic-page-1.webp" as="image" type="image/webp">
@@ -16,6 +16,10 @@
     <div class="brand">Lost Sword Archives</div>
     <nav class="tabs" role="tablist" aria-label="Site sections">
       <button class="tab" id="tab-home" aria-selected="true" tabindex="0" data-target="home">Home</button>
+
+      <!-- New Main Quests tab (inserted before Side Quests) -->
+      <button class="tab" id="tab-main-quests" aria-selected="false" tabindex="0" data-target="main-quests">Main Quests</button>
+
       <button class="tab" id="tab-side-quests" aria-selected="false" tabindex="0" data-target="side-quests">Side Quests</button>
     </nav>
     <div class="socials" id="socials-desktop" aria-label="Social links"></div>
@@ -26,8 +30,8 @@
     <!-- HOME SECTION -->
     <section id="home" data-section>
       <div class="home-layout">
-	  
-	  <!-- Highlights panel (new) -->
+      
+      <!-- Highlights panel (new) -->
         <aside class="highlights-panel" aria-label="Highlights of the week" id="highlights-panel">
           <h3>Highlights of the week</h3>
           <div class="highlights-stage" id="highlights-stage" aria-live="polite"></div>
@@ -55,6 +59,61 @@
           <h3>Balan Box</h3>
           <div id="shop-right-container" class="shop-grid"></div>
         </aside>
+      </div>
+    </section>
+
+    <!-- MAIN QUESTS SECTION (NEW) -->
+    <section id="main-quests" data-section hidden>
+      <header class="section-header">
+        <h2>Main Quests</h2>
+        <p class="section-sub">Primary storyline chapters and releases</p>
+      </header>
+
+      <!-- Coming soon banner -->
+      <div class="coming-soon" role="status" aria-live="polite">
+        <strong>Coming soon:</strong> Main Quest chapters are in development. Check back later for updates!
+      </div>
+
+      <!-- Chapters list template
+           - To add a chapter, copy a .chapter-card block and update data attributes:
+             * data-id: unique identifier
+             * data-status: "coming-soon" | "ongoing" | "complete" | "preview"
+           - Replace thumbnail src with your image path when available.
+      -->
+      <div class="chapters-list chapters-grid" id="main-chapters-list">
+        <!-- Example placeholder card (editable) -->
+        <article class="chapter-card" data-id="mq-001" data-status="coming-soon" aria-labelledby="mq-001-title">
+          <div class="chapter-thumbnail" aria-hidden="true">
+            <!-- Placeholder SVG keeps layout stable until you add real art -->
+            <svg width="400" height="240" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+              <rect width="100%" height="100%" fill="#f4f4f4"/>
+              <text x="50%" y="50%" fill="#d0d0d0" font-size="18" font-family="sans-serif" text-anchor="middle" alignment-baseline="central">Thumbnail placeholder</text>
+            </svg>
+          </div>
+		  
+          <div class="chapter-meta">
+            <h3 id="mq-001-title" class="chapter-title">Main Quest - Chapter 1</h3>
+            <p class="chapter-desc">Story description currently unavailable.</p>
+            <div class="chapter-actions">
+              <span class="status-badge status-coming-soon">Coming soon</span>
+              <!-- Editable links/buttons (keep structure, update href when available) -->
+              <a class="chapter-link disabled" href="#" aria-disabled="true">Read</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Add more chapter-card blocks here -->
+      </div>
+
+      <!-- Optional: You can leave a small editor note for yourself (hidden from assistive tech) -->
+      <div class="editor-note" aria-hidden="true">
+        <!--
+          Editor notes:
+          - Duplicate the .chapter-card article to add more chapters.
+          - Update the status badge by changing the class:
+              status-coming-soon, status-ongoing, status-complete, status-preview
+          - Replace the SVG with <picture> or <img> when you have thumbnails.
+        -->
       </div>
     </section>
 
