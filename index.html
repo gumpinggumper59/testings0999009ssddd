@@ -26,10 +26,20 @@
     <!-- HOME SECTION -->
     <section id="home" data-section>
       <div class="home-layout">
+	  
+	  <!-- Highlights panel (new) -->
+        <aside class="highlights-panel" aria-label="Highlights of the week" id="highlights-panel">
+          <h3>Highlights of the week</h3>
+          <div class="highlights-stage" id="highlights-stage" aria-live="polite"></div>
+        </aside>
+
+
         <aside class="shop shop-left">
           <h3>Balan Box</h3>
           <div id="shop-left-container" class="shop-grid"></div>
         </aside>
+
+        <!-- Clicker -->
         <section class="balan-container" aria-label="Clicker">
           <picture>
             <source srcset="sprites/balan-balan-clicker/webp-versions/balan-sprite.webp" type="image/webp">
@@ -40,12 +50,14 @@
           <button id="reset-clicks">Reset Clicks</button>
           <button id="mute-btn">shut up!</button>
         </section>
+
         <aside class="shop shop-right">
           <h3>Balan Box</h3>
           <div id="shop-right-container" class="shop-grid"></div>
         </aside>
       </div>
     </section>
+
     <!-- SIDE QUESTS SECTION -->
     <section id="side-quests" data-section hidden>
       <div class="chapters-list">
