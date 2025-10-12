@@ -617,3 +617,241 @@ window.addEventListener('keydown', function(e) {
   }
 });
 
+// =========================
+// Cheat menu implementation (re-implemented, robust key detection)
+// - Keybind: Shift + Q
+// - Password (case-sensitive): "Sela Aruna Bethsaida"
+// - Commands:
+//     "Give9.5k" -> sets clicks to 9500 (temporary, NOT saved to localStorage)
+// - Minimal DOM created only when needed. "X" and Escape close. Avoids interfering with rest of site.
+// =========================
+(function() {
+  const OVERLAY_ID = '__cheat_overlay__';
+  const PW_MODAL_ID = '__cheat_pw_modal__';
+  const CMD_MODAL_ID = '__cheat_cmd_modal__';
+  let isOpen = false;
+
+  // Prevent triggering while typing in inputs/textareas/contenteditable
+  function isUserTyping() {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = (el.tagName || '').toUpperCase();
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return true;
+    if (el.isContentEditable) return true;
+    return false;
+  }
+
+  function ensureOverlay() {
+    let ov = document.getElementById(OVERLAY_ID);
+    if (ov) return ov;
+    ov = document.createElement('div');
+    ov.id = OVERLAY_ID;
+    ov.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'background:rgba(0,0,0,0.6)',
+      'z-index:12000',
+      'backdrop-filter: blur(2px)'
+    ].join(';');
+    ov.addEventListener('click', (e) => {
+      // clicking outside modal closes everything
+      if (e.target === ov) closeAll();
+    });
+    document.body.appendChild(ov);
+    return ov;
+  }
+
+  function closeAll() {
+    const ov = document.getElementById(OVERLAY_ID);
+    if (ov) ov.remove();
+    const pw = document.getElementById(PW_MODAL_ID); if (pw) pw.remove();
+    const cmd = document.getElementById(CMD_MODAL_ID); if (cmd) cmd.remove();
+    isOpen = false;
+  }
+
+  function createBaseModal(id, titleText) {
+    const box = document.createElement('div');
+    box.id = id;
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.style.cssText = [
+      'min-width:320px',
+      'max-width:92%',
+      'background:#fff',
+      'color:var(--fg, #000)',
+      'border-radius:10px',
+      'padding:14px 16px 16px 16px',
+      'box-shadow:0 10px 40px rgba(0,0,0,0.35)',
+      'position:relative',
+      'font-family:inherit'
+    ].join(';');
+
+    const title = document.createElement('div');
+    title.textContent = titleText || '';
+    title.style.cssText = 'font-weight:700;margin-bottom:10px;';
+    box.appendChild(title);
+
+    const btnClose = document.createElement('button');
+    btnClose.type = 'button';
+    btnClose.textContent = 'X';
+    btnClose.title = 'Close';
+    btnClose.style.cssText = [
+      'position:absolute',
+      'right:8px',
+      'top:8px',
+      'border:none',
+      'background:transparent',
+      'cursor:pointer',
+      'font-weight:700',
+      'font-size:14px'
+    ].join(';');
+    btnClose.addEventListener('click', closeAll);
+    box.appendChild(btnClose);
+
+    return box;
+  }
+
+  function openPasswordModal() {
+    if (isOpen) return;
+    isOpen = true;
+    const ov = ensureOverlay();
+    const modal = createBaseModal(PW_MODAL_ID, 'Enter cheat password');
+
+    const hint = document.createElement('div');
+    hint.textContent = 'Enter admin password to access cheats.';
+    hint.style.cssText = 'color:#666;font-size:0.9rem;margin-bottom:8px;';
+    modal.appendChild(hint);
+
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.placeholder = 'Password';
+    input.style.cssText = 'width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;margin-bottom:8px;box-sizing:border-box;';
+    modal.appendChild(input);
+
+    const feedback = document.createElement('div');
+    feedback.style.cssText = 'min-height:1.1rem;color:#b33;font-size:0.9rem;margin-bottom:8px;';
+    modal.appendChild(feedback);
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+    const submit = document.createElement('button');
+    submit.textContent = 'Submit';
+    submit.style.cssText = 'padding:8px 10px;border-radius:6px;border:1px solid #000;background:#fff;cursor:pointer;';
+    row.appendChild(submit);
+    modal.appendChild(row);
+
+    ov.appendChild(modal);
+    // small delay to ensure appended before focus
+    setTimeout(() => input.focus(), 0);
+
+    function onSubmit() {
+      const val = (input.value || '').trim();
+      if (val === 'Sela Aruna Bethsaida') {
+        const pwModal = document.getElementById(PW_MODAL_ID);
+        if (pwModal) pwModal.remove();
+        openCommandModal();
+      } else {
+        feedback.textContent = 'Incorrect password';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    submit.addEventListener('click', onSubmit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') onSubmit();
+      if (e.key === 'Escape') closeAll();
+    });
+  }
+
+  function openCommandModal() {
+    const ov = ensureOverlay();
+    // remove existing command modal if present
+    const existing = document.getElementById(CMD_MODAL_ID);
+    if (existing) existing.remove();
+
+    const modal = createBaseModal(CMD_MODAL_ID, 'Cheat console');
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'color:#666;font-size:0.9rem;margin-bottom:8px;';
+    hint.innerHTML = 'Available command: <code>Give9.5k</code>';
+    modal.appendChild(hint);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Enter command (case-sensitive)';
+    input.style.cssText = 'width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;margin-bottom:8px;box-sizing:border-box;';
+    modal.appendChild(input);
+
+    const feedback = document.createElement('div');
+    feedback.style.cssText = 'min-height:1.1rem;color:#0b63d6;font-size:0.9rem;margin-bottom:8px;';
+    modal.appendChild(feedback);
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+    const run = document.createElement('button');
+    run.textContent = 'Run';
+    run.style.cssText = 'padding:8px 10px;border-radius:6px;border:1px solid #000;background:#fff;cursor:pointer;';
+    row.appendChild(run);
+    modal.appendChild(row);
+
+    ov.appendChild(modal);
+    setTimeout(() => input.focus(), 0);
+
+    function setFeedback(msg, ok = true) {
+      feedback.style.color = ok ? '#0b63d6' : '#b33';
+      feedback.textContent = msg;
+    }
+
+    function runCmd() {
+      const cmd = (input.value || '').trim();
+      if (!cmd) {
+        setFeedback('No command entered', false);
+        return;
+      }
+
+      if (cmd === 'Give9.5k') {
+        // Set clicks to 9500 but DO NOT persist to localStorage
+        clicks = 9500;
+        if (clickCountEl) clickCountEl.textContent = clicks;
+        // update secret button visibility if thresholds changed
+        updateSecretButtonVisibility();
+        setFeedback('Clicks temporarily set to 9500 (not saved).', true);
+      } else {
+        setFeedback(`Unknown command: "${cmd}"`, false);
+      }
+    }
+
+    run.addEventListener('click', runCmd);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') runCmd();
+      if (e.key === 'Escape') closeAll();
+    });
+  }
+
+  // Keybind: Shift + Q
+  // - Accept when Shift is pressed and the 'q' key is pressed.
+  // - Ignore when typing in inputs/textareas/contenteditable or modifier combos with ctrl/alt/meta.
+  window.addEventListener('keydown', function cheatKeyHandler(e) {
+    try {
+      if (e.repeat) return;
+      if (isUserTyping()) return;
+
+      // require Shift held, and the 'q' key; avoid Ctrl/Alt/Meta combos interfering
+      const isShift = !!e.shiftKey;
+      const isPlainQ = (typeof e.key === 'string' && e.key.toLowerCase() === 'q');
+      const hasNoOtherModifiers = !e.ctrlKey && !e.altKey && !e.metaKey;
+
+      if (isShift && isPlainQ && hasNoOtherModifiers) {
+        e.preventDefault();
+        openPasswordModal();
+      }
+    } catch (err) {
+      // swallow errors to avoid interfering with page behavior
+    }
+  }, { passive: false });
+
+})();
