@@ -379,6 +379,27 @@ function updateHappyCoins() {
   localStorage.setItem('balanHappyCoins', happyCoins);
 }
 
+// ---- SECRET BUTTON for 10000 clicks ----
+const secretBtn = document.getElementById('secret-btn');
+function updateSecretButtonVisibility() {
+  if (!secretBtn) return;
+  if (clicks >= 10000) {
+    secretBtn.hidden = false;
+    secretBtn.setAttribute('aria-hidden', 'false');
+  } else {
+    secretBtn.hidden = true;
+    secretBtn.setAttribute('aria-hidden', 'true');
+  }
+}
+if (secretBtn) {
+  secretBtn.addEventListener('click', (e) => {
+    // Open the secret video in a new tab
+    e.preventDefault && e.preventDefault();
+    // Use a direct video URL relative to the site
+    window.open('secret-ending/you-found-me.webm', '_blank', 'noopener');
+  });
+}
+
 // ---- Sprite logic ----
 function setBalanSprite(sprite) {
   balanWebp.srcset = sprite.webp;
@@ -459,6 +480,12 @@ balanImg.onclick = () => {
   localStorage.setItem('balanClicks', clicks);
   clickCountEl.textContent = clicks;
 
+  // Check for secret 10000 milestone first
+  if (clicks >= 10000) {
+    // reveal secret button when reaching 10000 clicks
+    updateSecretButtonVisibility();
+  }
+
   let voiceObj = null;
   if (balanSprites.milestones.some(m => clicks === m.count)) {
     voiceObj = nextMilestoneVoice();
@@ -482,7 +509,12 @@ resetBtn.onclick = () => {
   updateHappyCoins();
   clickCountEl.textContent = clicks;
   showDefaultSprite();
+  // Hide secret if reset dropped below threshold
+  updateSecretButtonVisibility();
 };
+
+// Ensure secret button visibility reflects stored clicks on load
+updateSecretButtonVisibility();
 
 // =========================
 // Shop System (DRY, event delegation)
@@ -584,3 +616,4 @@ window.addEventListener('keydown', function(e) {
     modalImg.src = '';
   }
 });
+
