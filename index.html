@@ -10,6 +10,8 @@
   <!-- Preload most used images -->
   <link rel="preload" href="side-quest-balan/first-part/webp-versions/lost-sword-comic-page-1.webp" as="image" type="image/webp">
   <link rel="preload" href="side-quest-balan/first-part/png-versions/lost-sword-comic-page-1.png" as="image" type="image/png">
+  <!-- (Optional) Preload the main quest thumbnail -->
+  <link rel="preload" href="main-quest-balan/chapter-thumbnail/webp-versions/chapter-one-thumbnail.webp" as="image" type="image/webp">
 </head>
 <body>
   <header class="topbar" role="navigation" aria-label="Main navigation">
@@ -75,22 +77,30 @@
       </div>
 
       <!-- Chapters list template
-           - To add a chapter, copy a .chapter-card block and update data attributes:
-             * data-id: unique identifier
-             * data-status: "coming-soon" | "ongoing" | "complete" | "preview"
-           - Replace thumbnail src with your image path when available.
+           - THUMBNAILS LOCATION:
+             main-quest-balan/chapter-thumbnail/webp-versions/*.webp
+             main-quest-balan/chapter-thumbnail/png-versions/*.png
+           - To add a chapter: copy a .chapter-card block and update:
+             * data-id: unique identifier (e.g. mq-002)
+             * aria-labelledby id for title (e.g. mq-002-title)
+             * image file paths below to point to your thumbnail files
+             * status-badge class: status-coming-soon | status-ongoing | status-complete | status-preview
       -->
       <div class="chapters-list chapters-grid" id="main-chapters-list">
-        <!-- Example placeholder card (editable) -->
+        <!-- Example card using your supplied thumbnail files.
+             Files used:
+               webp: main-quest-balan/chapter-thumbnail/webp-versions/chapter-one-thumbnail.webp
+               png:  main-quest-balan/chapter-thumbnail/png-versions/chapter-one-thumbnail.png
+        -->
         <article class="chapter-card" data-id="mq-001" data-status="coming-soon" aria-labelledby="mq-001-title">
           <div class="chapter-thumbnail" aria-hidden="true">
-            <!-- Placeholder SVG keeps layout stable until you add real art -->
-            <svg width="400" height="240" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-              <rect width="100%" height="100%" fill="#f4f4f4"/>
-              <text x="50%" y="50%" fill="#d0d0d0" font-size="18" font-family="sans-serif" text-anchor="middle" alignment-baseline="central">Thumbnail placeholder</text>
-            </svg>
+            <!-- Replace these src/srcset values with your own thumbnail paths for new chapters -->
+            <picture>
+              <source srcset="main-quest-balan/chapter-thumbnail/webp-versions/chapter-one-thumbnail.webp" type="image/webp">
+              <img src="main-quest-balan/chapter-thumbnail/png-versions/chapter-one-thumbnail.png" alt="Main Quest - Chapter 1 thumbnail" loading="lazy" decoding="async">
+            </picture>
           </div>
-		  
+          
           <div class="chapter-meta">
             <h3 id="mq-001-title" class="chapter-title">Main Quest - Chapter 1</h3>
             <p class="chapter-desc">Story description currently unavailable.</p>
@@ -102,7 +112,7 @@
           </div>
         </article>
 
-        <!-- Add more chapter-card blocks here -->
+        <!-- Add more chapter-card blocks here (duplicate the article above and update data-id, title, and thumbnail paths) -->
       </div>
 
       <!-- Optional: You can leave a small editor note for yourself (hidden from assistive tech) -->
@@ -112,7 +122,10 @@
           - Duplicate the .chapter-card article to add more chapters.
           - Update the status badge by changing the class:
               status-coming-soon, status-ongoing, status-complete, status-preview
-          - Replace the SVG with <picture> or <img> when you have thumbnails.
+          - Thumbnails live in:
+              main-quest-balan/chapter-thumbnail/webp-versions/
+              main-quest-balan/chapter-thumbnail/png-versions/
+          - Use <picture> like in the example to prefer WebP but keep PNG fallback.
         -->
       </div>
     </section>
