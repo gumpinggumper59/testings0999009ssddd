@@ -527,10 +527,10 @@ const shopSlots = [
 ];
 // CHANGE THIS ARRAY FOR ROTATION!
 const shopItems = [
-  { id: 'item1A', price: 500, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/lentius.png' },
-  { id: 'item2A', price: 200, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/balan-balan-spin.gif' },
-  { id: 'item3A', price: 250, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/butterfly-girl-redesign.png' },
-  { id: 'item4A', price: 450, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/nastunye.png' }
+  { id: 'item1A', price: 500, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/red-onion-girl.gif' },
+  { id: 'item2A', price: 200, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/nastunye-floor.png' },
+  { id: 'item3A', price: 250, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/lost-ms.png' },
+  { id: 'item4A', price: 450, lockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box.webp', unlockedSrc: 'sprites/shop/webp-shop-sprites/cardboard-box-unlocked.webp', fullSrc: 'sprites/shop/sellables/carcosa-pleased.png' }
 ];
 // Clean up previous week's owned item IDs
 shopSlots.forEach((slot, idx) => {
@@ -835,23 +835,59 @@ window.addEventListener('keydown', function(e) {
   // Keybind: Shift + Q
   // - Accept when Shift is pressed and the 'q' key is pressed.
   // - Ignore when typing in inputs/textareas/contenteditable or modifier combos with ctrl/alt/meta.
-  window.addEventListener('keydown', function cheatKeyHandler(e) {
+  // Improved robustness:
+  //  - listen on multiple targets (window, document, document.body)
+  //  - expose a helper for testing on hosted environments
+  //  - allow opening via URL ?cheat=1 or #cheat for testing
+  const debugEnabled = !!(new URLSearchParams(location.search).get('cheatDebug'));
+  function cheatKeyHandler(e) {
     try {
       if (e.repeat) return;
       if (isUserTyping()) return;
 
       // require Shift held, and the 'q' key; avoid Ctrl/Alt/Meta combos interfering
       const isShift = !!e.shiftKey;
-      const isPlainQ = (typeof e.key === 'string' && e.key.toLowerCase() === 'q');
+      // prefer code (physical key) but fallback to key
+      const isKeyQ = (typeof e.code === 'string' && e.code === 'KeyQ') ||
+                     (typeof e.key === 'string' && e.key.toLowerCase() === 'q');
       const hasNoOtherModifiers = !e.ctrlKey && !e.altKey && !e.metaKey;
 
-      if (isShift && isPlainQ && hasNoOtherModifiers) {
-        e.preventDefault();
+      if (debugEnabled) console.debug('cheatKeyHandler', { code: e.code, key: e.key, shiftKey: e.shiftKey });
+
+      if (isShift && isKeyQ && hasNoOtherModifiers) {
+        e.preventDefault && e.preventDefault();
         openPasswordModal();
       }
     } catch (err) {
       // swallow errors to avoid interfering with page behavior
     }
-  }, { passive: false });
+  }
 
+  // Attach listeners on multiple nodes to increase chance of catching key events on hosted environments
+  window.addEventListener('keydown', cheatKeyHandler, { passive: false });
+  document.addEventListener('keydown', cheatKeyHandler, { passive: false });
+  // Ensure body can get focus on some hosts (adding tabindex doesn't change layout)
+  if (document.body && !document.body.hasAttribute('tabindex')) {
+    document.body.setAttribute('tabindex', '-1');
+  }
+  document.body.addEventListener('keydown', cheatKeyHandler, { passive: false });
+
+  // Expose small helper so you can run from console on hosted pages:
+  //   window.__openCheatPasswordModal()
+  window.__openCheatPasswordModal = function() {
+    try { openPasswordModal(); } catch (e) { /* ignore */ }
+  };
+
+  // fallback: open cheat modal if URL has ?cheat=1 or #cheat
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get('cheat') === '1' || location.hash === '#cheat') {
+      // small delay to ensure page is interactive
+      setTimeout(() => {
+        openPasswordModal();
+      }, 200);
+    }
+  } catch (e) {
+    // ignore malformed URL
+  }
 })();
